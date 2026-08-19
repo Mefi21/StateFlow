@@ -47,7 +47,11 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="product-preview" aria-label="Пример панели состояния">
+        <div
+          className="product-preview"
+          data-theme="light"
+          aria-label="Пример панели состояния"
+        >
           <div className="preview-topline">
             <div>
               <span className="preview-kicker">Сегодня · 18 августа</span>

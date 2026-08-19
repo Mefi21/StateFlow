@@ -7,6 +7,7 @@ import { userSettings } from "@/db/schema";
 import { OfflineSyncManager } from "@/features/offline-sync/sync-manager";
 import { ThemeSync } from "@/features/settings/theme-sync";
 import { getCurrentSession } from "@/lib/auth/session";
+import { normalizeTheme } from "@/lib/theme";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { robots: { index: false, follow: false } };
@@ -23,9 +24,13 @@ export default async function PrivateAppLayout({
     .from(userSettings)
     .where(eq(userSettings.userId, session.user.id))
     .limit(1);
+  const theme = normalizeTheme(settings?.theme);
   return (
-    <AppShell username={session.user.username ?? session.user.name}>
-      <ThemeSync theme={settings?.theme ?? "system"} />
+    <AppShell
+      username={session.user.username ?? session.user.name}
+      theme={theme}
+    >
+      <ThemeSync theme={theme} />
       <OfflineSyncManager />
       {children}
     </AppShell>

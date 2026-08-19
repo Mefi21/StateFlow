@@ -2,6 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./e2e",
+  outputDir: "./test-results/theme-audit",
   fullyParallel: true,
   timeout: 30_000,
   use: { baseURL: "http://localhost:3000", trace: "on-first-retry" },

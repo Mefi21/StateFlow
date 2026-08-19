@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration";
 import "./globals.css";
 
@@ -65,10 +66,12 @@ export default function RootLayout({
       data-theme="system"
       data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable}`}
+      suppressHydrationWarning
     >
       <body>
         <ServiceWorkerRegistration />
         {children}
+        <Script src="/theme-init.js" strategy="beforeInteractive" />
       </body>
     </html>
   );

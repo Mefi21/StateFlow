@@ -16,6 +16,11 @@ import { authClient } from "@/lib/auth/auth-client";
 import type { CoreMetric } from "@/features/metrics/definitions";
 import { AccountDangerPanel } from "@/features/settings/account-danger-panel";
 import { SessionsPanel } from "@/features/settings/sessions-panel";
+import {
+  applyDocumentTheme,
+  normalizeTheme,
+  type ThemePreference,
+} from "@/lib/theme";
 
 type MetricSetting = {
   slug: string;
@@ -46,7 +51,9 @@ export function SettingsView({
   admin?: boolean;
 }) {
   const router = useRouter();
-  const [theme, setTheme] = useState(initial.theme);
+  const [theme, setTheme] = useState<ThemePreference>(() =>
+    normalizeTheme(initial.theme),
+  );
   const [timezone, setTimezone] = useState(initial.timezone);
   const [targetSleep, setTargetSleep] = useState(initial.targetSleepMinutes);
   const [morning, setMorning] = useState(initial.morningCheckInEnabled);
@@ -87,6 +94,11 @@ export function SettingsView({
       ),
     );
   }
+  function chooseTheme(value: ThemePreference) {
+    setTheme(value);
+    applyDocumentTheme(value, { persist: demo });
+    setStatus("idle");
+  }
   async function save() {
     if (demo) {
       setStatus("saved");
@@ -106,7 +118,7 @@ export function SettingsView({
     });
     setStatus(response.ok ? "saved" : "error");
     if (response.ok) {
-      document.documentElement.dataset.theme = theme;
+      applyDocumentTheme(theme, { persist: true });
     }
   }
   async function signOut() {
@@ -170,7 +182,7 @@ export function SettingsView({
                   <button
                     key={String(value)}
                     className={theme === value ? "selected" : ""}
-                    onClick={() => setTheme(String(value))}
+                    onClick={() => chooseTheme(value as ThemePreference)}
                   >
                     <ThemeIcon size={18} />
                     {String(label)}

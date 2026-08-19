@@ -10,6 +10,7 @@ import { requireUser } from "@/lib/auth/session";
 import { apiError, apiSuccess } from "@/lib/http/api-response";
 import { isSameOriginRequest } from "@/lib/security/request";
 import { settingsInputSchema } from "@/lib/validation/settings";
+import { themeCookieName } from "@/lib/theme";
 
 export async function POST(request: Request) {
   if (!isSameOriginRequest(request)) return apiError("ORIGIN_NOT_ALLOWED", 403);
@@ -79,7 +80,14 @@ export async function POST(request: Request) {
         }
       }
     });
-    return apiSuccess({ saved: true });
+    const response = apiSuccess({ saved: true });
+    response.cookies.set(themeCookieName, input.theme, {
+      path: "/",
+      maxAge: 31_536_000,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    });
+    return response;
   } catch (error) {
     if (error instanceof ZodError) return apiError("VALIDATION_ERROR", 400);
     if (error instanceof Error && error.message === "UNAUTHENTICATED")

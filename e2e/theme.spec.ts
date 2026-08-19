@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+import { writeFile } from "node:fs/promises";
 
 const auditedRoutes = [
   "/",
@@ -27,6 +28,31 @@ const themeCases = [
 
 function routeArtifactName(route: string) {
   return route === "/" ? "home" : route.slice(1).replaceAll("/", "--");
+}
+
+const surfaceSelectors = {
+  body: "body",
+  appFrame: ".app-frame",
+  panel: ".panel",
+  sidebar: ".app-sidebar",
+} as const;
+
+async function readSurfaceColors(page: Page) {
+  return page.evaluate((selectors) => {
+    return Object.fromEntries(
+      Object.entries(selectors).map(([name, selector]) => {
+        const element = document.querySelector(selector);
+        if (!element) throw new Error(`Missing theme surface: ${selector}`);
+        const styles = getComputedStyle(element);
+        return [
+          name,
+          { background: styles.backgroundColor, color: styles.color },
+        ];
+      }),
+    );
+  }, surfaceSelectors) as Promise<
+    Record<string, { background: string; color: string }>
+  >;
 }
 
 for (const { theme, preferredScheme, resolvedScheme } of themeCases) {
@@ -59,12 +85,17 @@ for (const { theme, preferredScheme, resolvedScheme } of themeCases) {
       await page.evaluate(() => document.fonts.ready);
 
       await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
-      const colorScheme = await page
-        .locator("html")
-        .evaluate((element) => getComputedStyle(element).colorScheme.trim());
-      expect(colorScheme, `${route} resolved color scheme`).toContain(
-        resolvedScheme,
-      );
+      await expect
+        .poll(
+          () =>
+            page
+              .locator("html")
+              .evaluate((element) =>
+                getComputedStyle(element).colorScheme.trim(),
+              ),
+          { message: `${route} resolved color scheme` },
+        )
+        .toContain(resolvedScheme);
 
       const hasHorizontalOverflow = await page.evaluate(
         () =>
@@ -118,12 +149,19 @@ for (const { theme, preferredScheme, resolvedScheme } of themeCases) {
   });
 }
 
-test("demo settings applies theme immediately without writing demo data", async ({
+test("demo settings controls, persists, and resolves the global theme", async ({
   page,
-}) => {
+  browserName,
+}, testInfo) => {
+  test.skip(
+    browserName !== "chromium",
+    "Persistence flow runs once in Chromium.",
+  );
   await page.emulateMedia({ colorScheme: "dark" });
   await page.addInitScript(() => {
-    window.localStorage.setItem("stateflow-theme", "system");
+    if (!window.localStorage.getItem("stateflow-theme")) {
+      window.localStorage.setItem("stateflow-theme", "light");
+    }
   });
 
   const settingsWrites: string[] = [];
@@ -137,22 +175,72 @@ test("demo settings applies theme immediately without writing demo data", async 
   });
 
   await page.goto("/demo/settings");
-  await page.getByRole("button", { name: "Светлая" }).click();
+  const lightButton = page.getByRole("button", { name: "Светлая" });
+  const darkButton = page.getByRole("button", { name: "Тёмная" });
+  const systemButton = page.getByRole("button", { name: "Системная" });
+
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect(lightButton).toHaveClass(/selected/);
+  expect(await page.locator("body [data-theme]").count()).toBe(0);
+  const lightColors = await readSurfaceColors(page);
 
-  await page.getByRole("button", { name: "Тёмная" }).click();
+  await darkButton.click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(darkButton).toHaveClass(/selected/);
+  const darkSettingsColors = await readSurfaceColors(page);
 
-  await page.getByRole("button", { name: "Системная" }).click();
+  for (const surface of Object.keys(surfaceSelectors)) {
+    expect(
+      darkSettingsColors[surface].background,
+      `${surface} background must differ between explicit light and dark`,
+    ).not.toBe(lightColors[surface].background);
+    expect(
+      darkSettingsColors[surface].color,
+      `${surface} text must differ between explicit light and dark`,
+    ).not.toBe(lightColors[surface].color);
+  }
+
+  await page.locator(".app-sidebar .wordmark").click();
+  await expect(page).toHaveURL(/\/demo$/);
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  const darkNavigationColors = await readSurfaceColors(page);
+  expect(darkNavigationColors).toEqual(darkSettingsColors);
+
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  expect(await readSurfaceColors(page)).toEqual(darkNavigationColors);
+
+  await page.goto("/demo/settings");
+  await expect(darkButton).toHaveClass(/selected/);
+  await lightButton.click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect(lightButton).toHaveClass(/selected/);
+  expect(await readSurfaceColors(page)).toEqual(lightColors);
+
+  await systemButton.click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "system");
-  const resolvedScheme = await page
-    .locator("html")
-    .evaluate((element) => getComputedStyle(element).colorScheme.trim());
-  expect(resolvedScheme).toContain("dark");
+  await expect(systemButton).toHaveClass(/selected/);
+  await expect.poll(() => readSurfaceColors(page)).toEqual(darkSettingsColors);
+
+  await page.emulateMedia({ colorScheme: "light" });
+  await expect.poll(() => readSurfaceColors(page)).toEqual(lightColors);
+
+  await page.emulateMedia({ colorScheme: "dark" });
+  await expect.poll(() => readSurfaceColors(page)).toEqual(darkSettingsColors);
 
   await page.getByRole("button", { name: "Сохранить" }).click();
   expect(settingsWrites).toEqual([]);
-  await expect(page.getByRole("button", { name: /Сохранить/ })).toContainText(
-    "Сохранить",
+  await expect(systemButton).toHaveClass(/selected/);
+
+  const computedColorsPath = testInfo.outputPath("computed-colors.json");
+  await writeFile(
+    computedColorsPath,
+    JSON.stringify({ light: lightColors, dark: darkSettingsColors }, null, 2),
   );
+  await testInfo.attach("demo-computed-theme-colors", {
+    path: computedColorsPath,
+    contentType: "application/json",
+  });
 });

@@ -1,4 +1,4 @@
-const STATIC_CACHE = "stateflow-static-v1";
+const STATIC_CACHE = "stateflow-static-v2";
 const PRECACHE = ["/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"];
 
 self.addEventListener("install", (event) => {
@@ -27,6 +27,7 @@ self.addEventListener("fetch", (event) => {
   const request = event.request;
   const url = new URL(request.url);
   if (request.method !== "GET" || url.origin !== self.location.origin) return;
+  if (url.pathname === "/theme-init.js") return;
   if (
     request.mode === "navigate" ||
     request.destination === "document" ||

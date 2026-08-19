@@ -21,12 +21,20 @@ type MetricKey =
   | "sleepHours"
   | "mastery";
 const cards: Array<{ key: MetricKey; label: string; color: string }> = [
-  { key: "futureWanting", label: "Хочу своего будущего", color: "#45684f" },
-  { key: "pleasure", label: "Удовольствие", color: "#8a6f42" },
-  { key: "energy", label: "Энергия", color: "#63778a" },
-  { key: "anxiety", label: "Тревога", color: "#8d625f" },
-  { key: "sleepHours", label: "Сон", color: "#6f658e" },
-  { key: "mastery", label: "Ощущение прогресса", color: "#4f7571" },
+  {
+    key: "futureWanting",
+    label: "Хочу своего будущего",
+    color: "var(--data-green)",
+  },
+  { key: "pleasure", label: "Удовольствие", color: "var(--data-warm)" },
+  { key: "energy", label: "Энергия", color: "var(--data-blue)" },
+  { key: "anxiety", label: "Тревога", color: "var(--data-red)" },
+  { key: "sleepHours", label: "Сон", color: "var(--data-purple)" },
+  {
+    key: "mastery",
+    label: "Ощущение прогресса",
+    color: "var(--data-teal)",
+  },
 ];
 
 export function DashboardView({

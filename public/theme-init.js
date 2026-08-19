@@ -5,6 +5,6 @@
       document.documentElement.dataset.theme = theme;
     }
   } catch {
-    // The server-rendered system theme remains the safe fallback.
+    // The server-rendered cookie preference remains the safe fallback.
   }
 })();

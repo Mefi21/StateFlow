@@ -1,11 +1,13 @@
 "use client";
 
 import { useLayoutEffect } from "react";
-import { applyDocumentTheme, type ThemePreference } from "@/lib/theme";
+import { useTheme } from "@/components/theme/theme-provider";
+import type { ThemePreference } from "@/lib/theme";
 
 export function ThemeSync({ theme }: { theme: ThemePreference }) {
+  const { setTheme } = useTheme();
   useLayoutEffect(() => {
-    applyDocumentTheme(theme, { persist: true });
-  }, [theme]);
+    setTheme(theme);
+  }, [setTheme, theme]);
   return null;
 }

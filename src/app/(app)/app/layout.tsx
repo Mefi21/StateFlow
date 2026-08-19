@@ -26,10 +26,7 @@ export default async function PrivateAppLayout({
     .limit(1);
   const theme = normalizeTheme(settings?.theme);
   return (
-    <AppShell
-      username={session.user.username ?? session.user.name}
-      theme={theme}
-    >
+    <AppShell username={session.user.username ?? session.user.name}>
       <ThemeSync theme={theme} />
       <OfflineSyncManager />
       {children}

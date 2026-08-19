@@ -13,14 +13,11 @@ import {
   Sun,
 } from "lucide-react";
 import { authClient } from "@/lib/auth/auth-client";
+import { useTheme } from "@/components/theme/theme-provider";
 import type { CoreMetric } from "@/features/metrics/definitions";
 import { AccountDangerPanel } from "@/features/settings/account-danger-panel";
 import { SessionsPanel } from "@/features/settings/sessions-panel";
-import {
-  applyDocumentTheme,
-  normalizeTheme,
-  type ThemePreference,
-} from "@/lib/theme";
+import type { ThemePreference } from "@/lib/theme";
 
 type MetricSetting = {
   slug: string;
@@ -51,9 +48,7 @@ export function SettingsView({
   admin?: boolean;
 }) {
   const router = useRouter();
-  const [theme, setTheme] = useState<ThemePreference>(() =>
-    normalizeTheme(initial.theme),
-  );
+  const { theme, setTheme } = useTheme();
   const [timezone, setTimezone] = useState(initial.timezone);
   const [targetSleep, setTargetSleep] = useState(initial.targetSleepMinutes);
   const [morning, setMorning] = useState(initial.morningCheckInEnabled);
@@ -96,7 +91,6 @@ export function SettingsView({
   }
   function chooseTheme(value: ThemePreference) {
     setTheme(value);
-    applyDocumentTheme(value, { persist: demo });
     setStatus("idle");
   }
   async function save() {
@@ -117,9 +111,6 @@ export function SettingsView({
       }),
     });
     setStatus(response.ok ? "saved" : "error");
-    if (response.ok) {
-      applyDocumentTheme(theme, { persist: true });
-    }
   }
   async function signOut() {
     await authClient.signOut();

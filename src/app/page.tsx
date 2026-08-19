@@ -105,15 +105,23 @@ export default function Home() {
               >
                 <defs>
                   <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#567660" stopOpacity=".22" />
-                    <stop offset="100%" stopColor="#567660" stopOpacity="0" />
+                    <stop
+                      offset="0%"
+                      stopColor="var(--data-green)"
+                      stopOpacity=".22"
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor="var(--data-green)"
+                      stopOpacity="0"
+                    />
                   </linearGradient>
                 </defs>
                 <polygon points={`0,112 ${points} 396,112`} fill="url(#area)" />
                 <polyline
                   points={points}
                   fill="none"
-                  stroke="#567660"
+                  stroke="var(--data-green)"
                   strokeWidth="3"
                   strokeLinecap="round"
                   strokeLinejoin="round"

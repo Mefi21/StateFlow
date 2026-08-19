@@ -14,7 +14,6 @@ import {
   Settings,
   SlidersHorizontal,
 } from "lucide-react";
-import type { ThemePreference } from "@/lib/theme";
 import { NavLink } from "./nav-link";
 
 const navigation = [
@@ -34,12 +33,10 @@ export function AppShell({
   children,
   demo = false,
   username,
-  theme,
 }: {
   children: React.ReactNode;
   demo?: boolean;
   username?: string | null;
-  theme?: ThemePreference;
 }) {
   const base = demo ? "/demo" : "/app/dashboard";
   const hrefFor = (path: string) =>
@@ -47,7 +44,7 @@ export function AppShell({
   const addHref = demo ? "/demo/snapshot" : "/app/snapshots/new";
 
   return (
-    <div className="app-frame" data-theme={theme}>
+    <div className="app-frame">
       <aside className="app-sidebar">
         <Link href={base} className="wordmark">
           <span className="mark">S</span>StateFlow

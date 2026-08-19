@@ -3,6 +3,8 @@ export const themePreferences = ["light", "dark", "system"] as const;
 export type ThemePreference = (typeof themePreferences)[number];
 
 export const themeStorageKey = "stateflow-theme";
+export const themeCookieName = "stateflow-theme";
+export const themeChangeEvent = "stateflow-theme-change";
 
 export function normalizeTheme(value: unknown): ThemePreference {
   return themePreferences.includes(value as ThemePreference)
@@ -22,6 +24,8 @@ export function applyDocumentTheme(
     } catch {
       // Storage can be unavailable in hardened or private browsing contexts.
     }
+    const secure = window.location.protocol === "https:" ? "; Secure" : "";
+    document.cookie = `${themeCookieName}=${theme}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
   }
   return theme;
 }

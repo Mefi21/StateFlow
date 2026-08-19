@@ -27,6 +27,8 @@ jobs:
       BETTER_AUTH_URL: http://localhost:3000
       NEXT_PUBLIC_APP_URL: http://localhost:3000
       PUBLIC_REGISTRATION: "false"
+      E2E_USERNAME: stateflowe2e
+      E2E_THEME_USERNAME: stateflowthemee2e
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -34,7 +36,31 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
+      - run: npm run format:check
       - run: npm run lint
       - run: npm run typecheck
+      - name: Prepare test database and E2E accounts
+        shell: bash
+        run: |
+          npm run db:migrate
+          test_password="StateFlowE2E-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-Aa9"
+          echo "::add-mask::$test_password"
+          echo "E2E_PASSWORD=$test_password" >> "$GITHUB_ENV"
+          ADMIN_USERNAME="$E2E_USERNAME" ADMIN_PASSWORD="$test_password" npm run setup:admin
+          ADMIN_USERNAME="$E2E_THEME_USERNAME" ADMIN_PASSWORD="$test_password" npm run setup:admin
       - run: npm run test
+      - run: npm run test:e2e
+      - name: Build theme contact sheets
+        if: always()
+        run: npm run test:e2e:contact-sheets
+      - name: Upload theme visual audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: theme-visual-audit
+          path: test-results/theme-audit
+          if-no-files-found: warn
+          retention-days: 14
       - run: npm run build

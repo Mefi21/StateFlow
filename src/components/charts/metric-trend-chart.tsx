@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import {
   Area,
   AreaChart,
@@ -14,13 +15,14 @@ type Point = { date: string; value: number; secondary?: number };
 
 export function MetricTrendChart({
   data,
-  color = "#466951",
+  color = "var(--data-green)",
   label = "Значение",
 }: {
   data: Point[];
   color?: string;
   label?: string;
 }) {
+  const gradientId = `metric-fill-${useId().replaceAll(":", "")}`;
   return (
     <div
       className="metric-chart"
@@ -33,21 +35,15 @@ export function MetricTrendChart({
           margin={{ top: 8, right: 3, left: -28, bottom: 0 }}
         >
           <defs>
-            <linearGradient
-              id={`fill-${color.replace("#", "")}`}
-              x1="0"
-              y1="0"
-              x2="0"
-              y2="1"
-            >
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={color} stopOpacity={0.2} />
               <stop offset="100%" stopColor={color} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke="#e9edea" vertical={false} />
+          <CartesianGrid stroke="var(--chart-grid)" vertical={false} />
           <XAxis
             dataKey="date"
-            tick={{ fill: "#7a837c", fontSize: 10 }}
+            tick={{ fill: "var(--chart-tick)", fontSize: 10 }}
             tickLine={false}
             axisLine={false}
             minTickGap={28}
@@ -55,15 +51,17 @@ export function MetricTrendChart({
           <YAxis
             domain={[0, 10]}
             ticks={[0, 5, 10]}
-            tick={{ fill: "#8a938c", fontSize: 10 }}
+            tick={{ fill: "var(--chart-tick)", fontSize: 10 }}
             tickLine={false}
             axisLine={false}
           />
           <Tooltip
             contentStyle={{
               borderRadius: 12,
-              border: "1px solid #dfe5e0",
-              boxShadow: "0 10px 35px rgba(30,45,35,.12)",
+              border: "1px solid var(--chart-tooltip-border)",
+              background: "var(--chart-tooltip-background)",
+              color: "var(--text-primary)",
+              boxShadow: "var(--chart-tooltip-shadow)",
               fontSize: 12,
             }}
             formatter={(value) => [Number(value).toFixed(1), label]}
@@ -73,7 +71,7 @@ export function MetricTrendChart({
             dataKey="value"
             stroke={color}
             strokeWidth={2.5}
-            fill={`url(#fill-${color.replace("#", "")})`}
+            fill={`url(#${gradientId})`}
             activeDot={{ r: 4 }}
           />
         </AreaChart>

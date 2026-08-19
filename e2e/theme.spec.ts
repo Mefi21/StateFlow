@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { writeFile } from "node:fs/promises";
+import { captureRuntimeErrors, waitForHydration } from "./theme-test-helpers";
 
 const auditedRoutes = [
   "/",
@@ -68,7 +69,7 @@ async function analyzeContrast(page: Page, route: string) {
       throw error;
     }
     await page.goto(route);
-    await page.evaluate(() => document.fonts.ready);
+    await waitForHydration(page);
     return new AxeBuilder({ page }).withRules(["color-contrast"]).analyze();
   }
 }
@@ -85,22 +86,15 @@ for (const { theme, preferredScheme, resolvedScheme } of themeCases) {
       }
     }, theme);
 
-    const pageErrors: Array<{ route: string; message: string }> = [];
+    const runtimeErrors = captureRuntimeErrors(page);
     const overflowFailures: string[] = [];
     const contrastFailures: Array<{
       route: string;
       targets: unknown[];
     }> = [];
-    let activeRoute: string = auditedRoutes[0];
-
-    page.on("pageerror", (error) => {
-      pageErrors.push({ route: activeRoute, message: error.message });
-    });
-
     for (const route of auditedRoutes) {
-      activeRoute = route;
       await page.goto(route);
-      await page.evaluate(() => document.fonts.ready);
+      await waitForHydration(page);
 
       await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
       await expect
@@ -154,11 +148,15 @@ for (const { theme, preferredScheme, resolvedScheme } of themeCases) {
           ),
           fullPage: true,
           animations: "disabled",
+          caret: "initial",
         });
       }
     }
 
-    expect(pageErrors, "uncaught page errors").toEqual([]);
+    expect(runtimeErrors.pageErrors, "uncaught page errors").toEqual([]);
+    expect(runtimeErrors.consoleErrors, "unexpected console errors").toEqual(
+      [],
+    );
     expect(overflowFailures, "routes with horizontal page overflow").toEqual(
       [],
     );
@@ -181,6 +179,8 @@ test("demo settings controls, persists, and resolves the global theme", async ({
     }
   });
 
+  const runtimeErrors = captureRuntimeErrors(page);
+
   const settingsWrites: string[] = [];
   page.on("request", (request) => {
     if (
@@ -192,6 +192,7 @@ test("demo settings controls, persists, and resolves the global theme", async ({
   });
 
   await page.goto("/demo/settings");
+  await waitForHydration(page);
   const lightButton = page.getByRole("button", { name: "Светлая" });
   const darkButton = page.getByRole("button", { name: "Тёмная" });
   const systemButton = page.getByRole("button", { name: "Системная" });
@@ -224,14 +225,17 @@ test("demo settings controls, persists, and resolves the global theme", async ({
   expect(darkNavigationColors).toEqual(darkSettingsColors);
 
   await page.reload();
+  await waitForHydration(page);
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   expect(await readSurfaceColors(page)).toEqual(darkNavigationColors);
 
   await page.goto("/demo/settings");
+  await waitForHydration(page);
   await expect(darkButton).toHaveClass(/selected/);
   await lightButton.click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await page.reload();
+  await waitForHydration(page);
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await expect(lightButton).toHaveClass(/selected/);
   expect(await readSurfaceColors(page)).toEqual(lightColors);
@@ -250,6 +254,9 @@ test("demo settings controls, persists, and resolves the global theme", async ({
   await page.getByRole("button", { name: "Сохранить" }).click();
   expect(settingsWrites).toEqual([]);
   await expect(systemButton).toHaveClass(/selected/);
+
+  expect(runtimeErrors.pageErrors, "uncaught page errors").toEqual([]);
+  expect(runtimeErrors.consoleErrors, "unexpected console errors").toEqual([]);
 
   const computedColorsPath = testInfo.outputPath("computed-colors.json");
   await writeFile(

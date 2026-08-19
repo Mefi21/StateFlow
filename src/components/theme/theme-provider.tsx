@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useSyncExternalStore,
@@ -63,6 +64,16 @@ export function ThemeProvider({
 
   useLayoutEffect(() => {
     applyDocumentTheme(getDocumentTheme(), { persist: true });
+  }, []);
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      document.documentElement.dataset.hydrated = "true";
+    });
+    return () => {
+      window.cancelAnimationFrame(frame);
+      delete document.documentElement.dataset.hydrated;
+    };
   }, []);
 
   const value = useMemo(() => ({ theme, setTheme }), [setTheme, theme]);

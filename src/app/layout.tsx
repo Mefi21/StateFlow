@@ -1,10 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { cookies } from "next/headers";
 import Script from "next/script";
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration";
 import { ThemeProvider } from "@/components/theme/theme-provider";
-import { normalizeTheme, themeCookieName } from "@/lib/theme";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -63,21 +61,20 @@ export const viewport: Viewport = {
   colorScheme: "light dark",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const theme = normalizeTheme((await cookies()).get(themeCookieName)?.value);
   return (
     <html
       lang="ru"
-      data-theme={theme}
+      data-theme="system"
       data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
       <body>
         <Script src="/theme-init.js" strategy="beforeInteractive" />
-        <ThemeProvider initialTheme={theme}>
+        <ThemeProvider initialTheme="system">
           <ServiceWorkerRegistration />
           {children}
         </ThemeProvider>

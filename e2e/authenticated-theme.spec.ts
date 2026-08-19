@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { writeFile } from "node:fs/promises";
+import { captureRuntimeErrors, waitForHydration } from "./theme-test-helpers";
 
 const username = process.env.E2E_THEME_USERNAME;
 const password = process.env.E2E_PASSWORD;
@@ -14,6 +15,7 @@ test.beforeEach(({ browserName }) => {
 
 async function login(page: Page) {
   await page.goto("/login");
+  await waitForHydration(page);
   await page.getByLabel("Имя пользователя").fill(username!);
   await page.getByLabel("Пароль").fill(password!);
   const signedIn = page.waitForResponse(
@@ -24,6 +26,7 @@ async function login(page: Page) {
   await page.getByRole("button", { name: "Войти" }).click();
   expect((await signedIn).ok()).toBe(true);
   await expect(page).toHaveURL(/\/app\/dashboard/);
+  await waitForHydration(page);
 }
 
 async function appColors(page: Page) {
@@ -62,8 +65,10 @@ async function saveSettings(page: Page) {
 test("authenticated theme is global and survives save, navigation, and reload", async ({
   page,
 }, testInfo) => {
+  const runtimeErrors = captureRuntimeErrors(page);
   await login(page);
   await page.goto("/app/settings");
+  await waitForHydration(page);
 
   const darkButton = page.getByRole("button", { name: "Тёмная" });
   await darkButton.click();
@@ -80,15 +85,20 @@ test("authenticated theme is global and survives save, navigation, and reload", 
     path: testInfo.outputPath("screenshots", "authenticated--dark.png"),
     fullPage: true,
     animations: "disabled",
+    caret: "initial",
   });
 
   await page.goto("/app/dashboard");
+  await waitForHydration(page);
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.reload();
+  await waitForHydration(page);
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.goto("/app/settings");
+  await waitForHydration(page);
   await expect(darkButton).toHaveClass(/selected/);
   await page.reload();
+  await waitForHydration(page);
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   expect(await appColors(page)).toEqual(darkColors);
 
@@ -100,10 +110,14 @@ test("authenticated theme is global and survives save, navigation, and reload", 
   expect(lightColors).not.toEqual(darkColors);
 
   await page.goto("/app/dashboard");
+  await waitForHydration(page);
   await page.reload();
+  await waitForHydration(page);
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await page.goto("/app/settings");
+  await waitForHydration(page);
   await page.reload();
+  await waitForHydration(page);
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   expect(await appColors(page)).toEqual(lightColors);
 
@@ -111,7 +125,11 @@ test("authenticated theme is global and survives save, navigation, and reload", 
     path: testInfo.outputPath("screenshots", "authenticated--light.png"),
     fullPage: true,
     animations: "disabled",
+    caret: "initial",
   });
+
+  expect(runtimeErrors.pageErrors, "uncaught page errors").toEqual([]);
+  expect(runtimeErrors.consoleErrors, "unexpected console errors").toEqual([]);
   const computedColorsPath = testInfo.outputPath("computed-colors.json");
   await writeFile(
     computedColorsPath,

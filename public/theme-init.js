@@ -1,10 +1,29 @@
 (() => {
+  const isTheme = (value) =>
+    value === "light" || value === "dark" || value === "system";
+  let theme;
+
   try {
-    const theme = window.localStorage.getItem("stateflow-theme");
-    if (theme === "light" || theme === "dark" || theme === "system") {
-      document.documentElement.dataset.theme = theme;
-    }
+    theme = window.localStorage.getItem("stateflow-theme");
   } catch {
-    // The server-rendered cookie preference remains the safe fallback.
+    // Storage can be unavailable in hardened or private browsing contexts.
+  }
+
+  if (!isTheme(theme)) {
+    try {
+      const prefix = "stateflow-theme=";
+      const preference = document.cookie
+        .split("; ")
+        .find((value) => value.startsWith(prefix));
+      theme = preference
+        ? decodeURIComponent(preference.slice(prefix.length))
+        : undefined;
+    } catch {
+      // The server-rendered system preference remains the safe fallback.
+    }
+  }
+
+  if (isTheme(theme)) {
+    document.documentElement.dataset.theme = theme;
   }
 })();

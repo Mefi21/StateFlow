@@ -1,0 +1,1 @@
+ALTER TABLE "morning_entries" ADD COLUMN "sleep_quality" integer;

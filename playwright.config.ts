@@ -5,7 +5,7 @@ export default defineConfig({
   outputDir: "./test-results/theme-audit",
   fullyParallel: true,
   timeout: 90_000,
-  workers: 2,
+  workers: process.env.CI ? 1 : 2,
   expect: { timeout: 15_000 },
   use: { baseURL: "http://localhost:3000", trace: "on-first-retry" },
   webServer: {

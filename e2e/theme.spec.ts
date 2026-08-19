@@ -55,6 +55,24 @@ async function readSurfaceColors(page: Page) {
   >;
 }
 
+async function analyzeContrast(page: Page, route: string) {
+  try {
+    return await new AxeBuilder({ page })
+      .withRules(["color-contrast"])
+      .analyze();
+  } catch (error) {
+    if (
+      !(error instanceof Error) ||
+      !/execution context was destroyed|navigation/i.test(error.message)
+    ) {
+      throw error;
+    }
+    await page.goto(route);
+    await page.evaluate(() => document.fonts.ready);
+    return new AxeBuilder({ page }).withRules(["color-contrast"]).analyze();
+  }
+}
+
 for (const { theme, preferredScheme, resolvedScheme } of themeCases) {
   test(`${theme} theme route, contrast, and responsive audit`, async ({
     page,
@@ -105,9 +123,8 @@ for (const { theme, preferredScheme, resolvedScheme } of themeCases) {
       );
       if (hasHorizontalOverflow) overflowFailures.push(route);
 
-      const axeResult = await new AxeBuilder({ page })
-        .withRules(["color-contrast"])
-        .analyze();
+      const axeResult = await analyzeContrast(page, route);
+      await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
       if (axeResult.violations.length) {
         contrastFailures.push({
           route,

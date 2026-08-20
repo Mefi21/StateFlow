@@ -2539,6 +2539,16 @@ input[type="range"] {
   height: 16px;
   accent-color: var(--accent-text);
 }
+.metric-setting-toggle em {
+  display: none;
+}
+.route-loading {
+  min-height: 160px;
+  display: grid;
+  place-items: center;
+  color: var(--text-subtle);
+  font-size: 13px;
+}
 .setting-line {
   display: grid;
   gap: 13px;
@@ -2807,10 +2817,11 @@ input[type="range"] {
   }
   .app-main-wrap {
     margin-left: 0;
+    min-height: 0;
   }
   .app-content {
     width: calc(100% - 28px);
-    padding: 25px 0 calc(100px + env(safe-area-inset-bottom));
+    padding: 25px 0 calc(84px + env(safe-area-inset-bottom));
   }
   .demo-banner {
     padding: 0 14px;
@@ -2820,8 +2831,10 @@ input[type="range"] {
   }
   .mobile-nav {
     position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
     z-index: 50;
-    inset: auto 0 0;
     height: calc(68px + env(safe-area-inset-bottom));
     padding: 6px 12px env(safe-area-inset-bottom);
     display: grid;
@@ -2991,15 +3004,45 @@ input[type="range"] {
     display: flex;
     overflow-x: auto;
   }
-  .metric-settings-head,
   .metric-setting-row {
-    grid-template-columns: minmax(120px, 1fr) repeat(4, 45px);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
-  .metric-settings-head span {
-    font-size: 0;
+  .metric-settings-head {
+    display: none;
   }
-  .metric-settings-head span:first-child {
-    font-size: 8px;
+  .metric-setting-row {
+    gap: 10px 4px;
+    padding: 13px 0;
+  }
+  .metric-setting-row > div {
+    grid-column: 1/-1;
+  }
+  .metric-setting-row strong {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+  .metric-setting-row small {
+    font-size: 10px;
+  }
+  .metric-setting-toggle {
+    justify-self: stretch !important;
+    min-height: 54px;
+    display: grid;
+    place-items: center;
+    gap: 4px;
+    padding: 5px 2px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 9px;
+  }
+  .metric-setting-toggle em {
+    display: block;
+    font-size: 9px;
+    font-style: normal;
+    line-height: 1.1;
+    text-align: center;
   }
   .theme-picker {
     grid-template-columns: 1fr;

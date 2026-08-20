@@ -34,6 +34,13 @@ type SettingsData = {
   morningCheckInEnabled: boolean;
 };
 
+const metricSettingLabels = {
+  enabled: "Вкл.",
+  snapshotEnabled: "Снимок",
+  dailyEnabled: "Daily",
+  dashboardEnabled: "Панель",
+} as const;
+
 export function SettingsView({
   initial,
   metrics,
@@ -212,13 +219,14 @@ export function SettingsView({
                       "dashboardEnabled",
                     ] as const
                   ).map((key) => (
-                    <label key={key}>
+                    <label className="metric-setting-toggle" key={key}>
                       <input
                         type="checkbox"
                         checked={setting[key]}
                         onChange={() => updateMetric(metric.slug, key)}
                       />
                       <span />
+                      <em>{metricSettingLabels[key]}</em>
                     </label>
                   ))}
                 </div>

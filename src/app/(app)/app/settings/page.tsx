@@ -1,22 +1,15 @@
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
-import {
-  metricDefinitions,
-  userMetricSettings,
-  userSettings,
-} from "@/db/schema";
+import { metricDefinitions, userMetricSettings } from "@/db/schema";
 import { coreMetrics } from "@/features/metrics/definitions";
 import { SettingsView } from "@/features/settings/settings-view";
 import { requireUser } from "@/lib/auth/session";
+import { getUserPreferences } from "@/lib/user-preferences";
 export default async function SettingsPage() {
   const user = await requireUser();
   const db = getDb();
-  const [[settings], metricSettings] = await Promise.all([
-    db
-      .select()
-      .from(userSettings)
-      .where(eq(userSettings.userId, user.id))
-      .limit(1),
+  const [settings, metricSettings] = await Promise.all([
+    getUserPreferences(user.id),
     db
       .select({
         slug: metricDefinitions.slug,

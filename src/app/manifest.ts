@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "Longitudinal personal state tracking without diagnostic claims.",
     start_url: "/app/dashboard",
     display: "standalone",
-    background_color: "#f5f7f4",
-    theme_color: "#294233",
+    background_color: "#151619",
+    theme_color: "#151619",
     orientation: "portrait-primary",
     icons: [
       {

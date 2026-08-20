@@ -27,19 +27,19 @@ export function CorrelationScatter({
     >
       <ResponsiveContainer width="100%" height="100%">
         <ScatterChart margin={{ top: 12, right: 12, left: -8, bottom: 12 }}>
-          <CartesianGrid stroke="#e9edea" />
+          <CartesianGrid stroke="var(--chart-grid)" />
           <XAxis
             type="number"
             dataKey="x"
             name={xLabel}
-            tick={{ fontSize: 10 }}
+            tick={{ fill: "var(--chart-tick)", fontSize: 10 }}
             label={{ value: xLabel, position: "bottom", fontSize: 10 }}
           />
           <YAxis
             type="number"
             dataKey="y"
             name={yLabel}
-            tick={{ fontSize: 10 }}
+            tick={{ fill: "var(--chart-tick)", fontSize: 10 }}
             label={{
               value: yLabel,
               angle: -90,
@@ -49,9 +49,16 @@ export function CorrelationScatter({
           />
           <Tooltip
             cursor={{ strokeDasharray: "3 3" }}
-            contentStyle={{ borderRadius: 12, fontSize: 12 }}
+            contentStyle={{
+              borderRadius: 12,
+              border: "1px solid var(--chart-tooltip-border)",
+              background: "var(--chart-tooltip-background)",
+              color: "var(--text-primary)",
+              boxShadow: "var(--chart-tooltip-shadow)",
+              fontSize: 12,
+            }}
           />
-          <Scatter data={data} fill="#557660" fillOpacity={0.72} />
+          <Scatter data={data} fill="var(--data-blue)" fillOpacity={0.78} />
         </ScatterChart>
       </ResponsiveContainer>
     </div>

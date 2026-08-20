@@ -3,11 +3,14 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LoaderCircle } from "lucide-react";
+import { useTheme } from "@/components/theme/theme-provider";
 import { authClient } from "@/lib/auth/auth-client";
+import { normalizeTheme } from "@/lib/theme";
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { setTheme } = useTheme();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,6 +26,15 @@ export function LoginForm() {
       setError("Не удалось войти. Проверьте имя пользователя и пароль.");
       setPending(false);
       return;
+    }
+    try {
+      const response = await fetch("/api/settings", { cache: "no-store" });
+      const payload = (await response.json()) as {
+        data?: { theme?: string } | null;
+      };
+      if (response.ok) setTheme(normalizeTheme(payload.data?.theme));
+    } catch {
+      // The account layout will synchronize the preference after navigation.
     }
     const next = searchParams.get("next");
     router.push(next?.startsWith("/app") ? next : "/app/dashboard");

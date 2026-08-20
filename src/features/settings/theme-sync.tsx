@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
+import { useTheme } from "@/components/theme/theme-provider";
+import type { ThemePreference } from "@/lib/theme";
 
-export function ThemeSync({ theme }: { theme: string }) {
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-  }, [theme]);
+export function ThemeSync({ theme }: { theme: ThemePreference }) {
+  const { setTheme } = useTheme();
+  useLayoutEffect(() => {
+    setTheme(theme);
+  }, [setTheme, theme]);
   return null;
 }

@@ -12,7 +12,13 @@ import {
 } from "recharts";
 
 type MultiPoint = { date: string; [key: string]: string | number };
-const colors = ["#42664d", "#89744e", "#75638d", "#9b5b56"];
+const colors = [
+  "var(--data-green)",
+  "var(--data-warm)",
+  "var(--data-purple)",
+  "var(--data-red)",
+  "var(--data-blue)",
+];
 
 export function MultiMetricChart({
   data,
@@ -32,24 +38,27 @@ export function MultiMetricChart({
           data={data}
           margin={{ top: 16, right: 10, left: -22, bottom: 0 }}
         >
-          <CartesianGrid stroke="#e8ece9" vertical={false} />
+          <CartesianGrid stroke="var(--chart-grid)" vertical={false} />
           <XAxis
             dataKey="date"
-            tick={{ fontSize: 10, fill: "#778078" }}
+            tick={{ fontSize: 10, fill: "var(--chart-tick)" }}
             tickLine={false}
             axisLine={false}
             minTickGap={32}
           />
           <YAxis
             domain={[0, 10]}
-            tick={{ fontSize: 10, fill: "#778078" }}
+            tick={{ fontSize: 10, fill: "var(--chart-tick)" }}
             tickLine={false}
             axisLine={false}
           />
           <Tooltip
             contentStyle={{
               borderRadius: 12,
-              border: "1px solid #dfe5e0",
+              border: "1px solid var(--chart-tooltip-border)",
+              background: "var(--chart-tooltip-background)",
+              color: "var(--text-primary)",
+              boxShadow: "var(--chart-tooltip-shadow)",
               fontSize: 12,
             }}
           />

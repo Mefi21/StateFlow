@@ -13,9 +13,11 @@ import {
   Sun,
 } from "lucide-react";
 import { authClient } from "@/lib/auth/auth-client";
+import { useTheme } from "@/components/theme/theme-provider";
 import type { CoreMetric } from "@/features/metrics/definitions";
 import { AccountDangerPanel } from "@/features/settings/account-danger-panel";
 import { SessionsPanel } from "@/features/settings/sessions-panel";
+import type { ThemePreference } from "@/lib/theme";
 
 type MetricSetting = {
   slug: string;
@@ -46,7 +48,7 @@ export function SettingsView({
   admin?: boolean;
 }) {
   const router = useRouter();
-  const [theme, setTheme] = useState(initial.theme);
+  const { theme, setTheme } = useTheme();
   const [timezone, setTimezone] = useState(initial.timezone);
   const [targetSleep, setTargetSleep] = useState(initial.targetSleepMinutes);
   const [morning, setMorning] = useState(initial.morningCheckInEnabled);
@@ -87,6 +89,10 @@ export function SettingsView({
       ),
     );
   }
+  function chooseTheme(value: ThemePreference) {
+    setTheme(value);
+    setStatus("idle");
+  }
   async function save() {
     if (demo) {
       setStatus("saved");
@@ -105,9 +111,6 @@ export function SettingsView({
       }),
     });
     setStatus(response.ok ? "saved" : "error");
-    if (response.ok) {
-      document.documentElement.dataset.theme = theme;
-    }
   }
   async function signOut() {
     await authClient.signOut();
@@ -170,7 +173,7 @@ export function SettingsView({
                   <button
                     key={String(value)}
                     className={theme === value ? "selected" : ""}
-                    onClick={() => setTheme(String(value))}
+                    onClick={() => chooseTheme(value as ThemePreference)}
                   >
                     <ThemeIcon size={18} />
                     {String(label)}

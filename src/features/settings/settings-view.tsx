@@ -324,6 +324,11 @@ export function SettingsView({
               Настройки не сохранены. Попробуйте ещё раз.
             </p>
           ) : null}
+          {status === "saved" ? (
+            <p className="form-message" role="status" aria-live="polite">
+              Настройки сохранены.
+            </p>
+          ) : null}
         </div>
       </div>
     </>

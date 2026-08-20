@@ -1,8 +1,12 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   devIndicators: false,
   poweredByHeader: false,
+  turbopack: {
+    root: path.resolve(import.meta.dirname),
+  },
   async headers() {
     const isDevelopment = process.env.NODE_ENV !== "production";
     const scriptSrc = isDevelopment

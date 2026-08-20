@@ -4,9 +4,14 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 const databaseUrl = process.env.TEST_DATABASE_URL;
-if (databaseUrl) process.env.DATABASE_URL = databaseUrl;
+if (!databaseUrl) {
+  throw new Error(
+    "TEST_DATABASE_URL is required to run integration tests. Add it to .env.",
+  );
+}
+process.env.DATABASE_URL = databaseUrl;
 
-describe.skipIf(!databaseUrl)("snapshot ownership", () => {
+describe("snapshot ownership", () => {
   const userA = `test-a-${randomUUID()}`;
   const userB = `test-b-${randomUUID()}`;
   const snapshotId = randomUUID();

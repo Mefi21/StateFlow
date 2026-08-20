@@ -8,9 +8,9 @@ import {
   metricValues,
   sleepRecords,
   snapshots,
-  userSettings,
 } from "@/db/schema";
 import { median } from "@/lib/statistics";
+import { getUserPreferences } from "@/lib/user-preferences";
 
 export type DashboardData = Awaited<ReturnType<typeof getDashboardData>>;
 
@@ -18,60 +18,55 @@ export async function getDashboardData(userId: string) {
   const db = getDb();
   const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   const today = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const [values, snapshotRows, sleep, caffeine, settingsRows] =
-    await Promise.all([
-      db
-        .select({
-          slug: metricDefinitions.slug,
-          value: metricValues.value,
-          recordedAt: metricValues.recordedAt,
-          entryType: metricValues.entryType,
-        })
-        .from(metricValues)
-        .innerJoin(
-          metricDefinitions,
-          eq(metricValues.metricDefinitionId, metricDefinitions.id),
-        )
-        .where(
-          and(
-            eq(metricValues.userId, userId),
-            gte(metricValues.recordedAt, since),
-          ),
-        )
-        .orderBy(metricValues.recordedAt),
-      db
-        .select()
-        .from(snapshots)
-        .where(
-          and(eq(snapshots.userId, userId), gte(snapshots.recordedAt, since)),
-        )
-        .orderBy(desc(snapshots.recordedAt)),
-      db
-        .select()
-        .from(sleepRecords)
-        .where(eq(sleepRecords.userId, userId))
-        .orderBy(desc(sleepRecords.sleepStartedAt))
-        .limit(1),
-      db
-        .select({
-          caffeineMg: caffeineEntries.caffeineMg,
-          recordedAt: caffeineEntries.recordedAt,
-        })
-        .from(caffeineEntries)
-        .where(
-          and(
-            eq(caffeineEntries.userId, userId),
-            gte(caffeineEntries.recordedAt, today),
-          ),
+  const [values, snapshotRows, sleep, caffeine, settings] = await Promise.all([
+    db
+      .select({
+        slug: metricDefinitions.slug,
+        value: metricValues.value,
+        recordedAt: metricValues.recordedAt,
+        entryType: metricValues.entryType,
+      })
+      .from(metricValues)
+      .innerJoin(
+        metricDefinitions,
+        eq(metricValues.metricDefinitionId, metricDefinitions.id),
+      )
+      .where(
+        and(
+          eq(metricValues.userId, userId),
+          gte(metricValues.recordedAt, since),
         ),
-      db
-        .select({ timezone: userSettings.timezone })
-        .from(userSettings)
-        .where(eq(userSettings.userId, userId))
-        .limit(1),
-    ]);
+      )
+      .orderBy(metricValues.recordedAt),
+    db
+      .select()
+      .from(snapshots)
+      .where(
+        and(eq(snapshots.userId, userId), gte(snapshots.recordedAt, since)),
+      )
+      .orderBy(desc(snapshots.recordedAt)),
+    db
+      .select()
+      .from(sleepRecords)
+      .where(eq(sleepRecords.userId, userId))
+      .orderBy(desc(sleepRecords.sleepStartedAt))
+      .limit(1),
+    db
+      .select({
+        caffeineMg: caffeineEntries.caffeineMg,
+        recordedAt: caffeineEntries.recordedAt,
+      })
+      .from(caffeineEntries)
+      .where(
+        and(
+          eq(caffeineEntries.userId, userId),
+          gte(caffeineEntries.recordedAt, today),
+        ),
+      ),
+    getUserPreferences(userId),
+  ]);
 
-  const timezone = settingsRows[0]?.timezone ?? "UTC";
+  const timezone = settings?.timezone ?? "UTC";
   const localDate = (date: Date) => {
     const parts = new Intl.DateTimeFormat("en-CA", {
       timeZone: timezone,

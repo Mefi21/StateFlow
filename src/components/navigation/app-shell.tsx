@@ -44,41 +44,42 @@ export function AppShell({
   const addHref = demo ? "/demo/snapshot" : "/app/snapshots/new";
 
   return (
-    <div className="app-frame">
-      <aside className="app-sidebar">
-        <Link href={base} className="wordmark">
-          <span className="mark">S</span>StateFlow
-        </Link>
-        <nav aria-label="Навигация приложения">
-          {navigation.map(({ path, label, icon: Icon }) => (
-            <NavLink href={hrefFor(path)} key={label} exact={!path}>
-              <Icon size={18} strokeWidth={1.8} />
-              {label}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="sidebar-profile">
-          <span className="avatar">
-            {demo ? "D" : username?.slice(0, 1).toUpperCase() || "U"}
-          </span>
-          <span>
-            <strong>{demo ? "Demo profile" : username}</strong>
-            <small>{demo ? "Только чтение" : "Личное пространство"}</small>
-          </span>
-          <SlidersHorizontal size={16} />
-        </div>
-      </aside>
-
-      <div className="app-main-wrap">
-        {demo ? (
-          <div className="demo-banner">
-            <span>Демо · синтетические данные</span>
-            <Link href="/login">Войти в своё пространство →</Link>
+    <>
+      <div className="app-frame">
+        <aside className="app-sidebar">
+          <Link href={base} className="wordmark">
+            <span className="mark">S</span>StateFlow
+          </Link>
+          <nav aria-label="Навигация приложения">
+            {navigation.map(({ path, label, icon: Icon }) => (
+              <NavLink href={hrefFor(path)} key={label} exact={!path}>
+                <Icon size={18} strokeWidth={1.8} />
+                {label}
+              </NavLink>
+            ))}
+          </nav>
+          <div className="sidebar-profile">
+            <span className="avatar">
+              {demo ? "D" : username?.slice(0, 1).toUpperCase() || "U"}
+            </span>
+            <span>
+              <strong>{demo ? "Demo profile" : username}</strong>
+              <small>{demo ? "Только чтение" : "Личное пространство"}</small>
+            </span>
+            <SlidersHorizontal size={16} />
           </div>
-        ) : null}
-        <div className="app-content">{children}</div>
-      </div>
+        </aside>
 
+        <div className="app-main-wrap">
+          {demo ? (
+            <div className="demo-banner">
+              <span>Демо · синтетические данные</span>
+              <Link href="/login">Войти в своё пространство →</Link>
+            </div>
+          ) : null}
+          <div className="app-content">{children}</div>
+        </div>
+      </div>
       <nav className="mobile-nav" aria-label="Мобильная навигация">
         <NavLink href={base} exact>
           <Home size={21} />
@@ -104,6 +105,6 @@ export function AppShell({
           <span>Настройки</span>
         </NavLink>
       </nav>
-    </div>
+    </>
   );
 }

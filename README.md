@@ -152,7 +152,7 @@ Prerequisites: Node.js 22+ and PostgreSQL 16+ (or Neon).
 git clone <repository-url>
 cd stateflow
 npm install
-cp .env.example .env.local
+cp .env.example .env
 npm run db:migrate
 npm run db:seed
 npm run setup:admin -- your_username 'a-strong-password'
@@ -178,12 +178,11 @@ Never use schema push as the production migration workflow.
 npm run lint
 npm run typecheck
 npm test
-TEST_DATABASE_URL=... DATABASE_URL=... npm test
 npm run test:e2e
 npm run build
 ```
 
-Vitest covers statistics and components. PostgreSQL integration tests create two users and verify cross-user access/deletion fails. Playwright covers demo, iPhone layout, snapshot interaction, and an opt-in authenticated offline/reconnect flow. CI runs lint, strict TypeScript, tests, and the production build against PostgreSQL 17.
+Vitest loads `TEST_DATABASE_URL` from `.env`; it is required for the PostgreSQL integration tests. Vitest covers statistics and components. PostgreSQL integration tests create two users and verify cross-user access/deletion fails. Playwright covers demo, iPhone layout, snapshot interaction, and an opt-in authenticated offline/reconnect flow. CI runs lint, strict TypeScript, tests, and the production build against PostgreSQL 17.
 
 ## Deployment
 
